@@ -39,7 +39,9 @@ async function loadAllScripts() {
 }
 
 function runMainScript() {
-  // Preloader
+  console.log("All libraries loaded, checking DOM readiness...");
+
+  // Preloader class definition (same as before)
   class SimplePreloader {
     constructor() {
       this.object = document.querySelector('.animated-preloader-object');
@@ -226,8 +228,10 @@ function runMainScript() {
     }
   }
 
-  // Main
-  document.addEventListener('DOMContentLoaded', () => {
+  // Function to run the main effects code
+  function runMainEffects() {
+    console.log("Main script running..."); // Debug log
+
     let preloaderInstance = new SimplePreloader();
     
     if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined' && typeof SplitText !== 'undefined') {
@@ -957,7 +961,19 @@ function runMainScript() {
         }, 250); 
       });
     }
-  });
+  }
+
+  // Check DOM readiness and run main effects
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', runMainEffects);
+  } else {
+    runMainEffects();
+  }
+
+  // Instantiate preloader early (as in original)
+  if (typeof SimplePreloader !== 'undefined') {
+    new SimplePreloader();
+  }
 }
 
 // Start loading scripts
