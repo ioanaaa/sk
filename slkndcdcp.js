@@ -41,7 +41,7 @@ async function loadAllScripts() {
 function runMainScript() {
   console.log("All libraries loaded, checking DOM readiness...");
 
-  // Preloader class definition (same as before)
+  // Preloader class definition (unchanged)
   class SimplePreloader {
     constructor() {
       this.object = document.querySelector('.animated-preloader-object');
@@ -63,8 +63,8 @@ function runMainScript() {
         return;
       }
       
-      this.preloaderSection.classList.add('preloader-active');
       this.preloaderSection.style.opacity = '1';
+      this.preloaderSection.classList.add('preloader-active');
       
       const animationType = getComputedStyle(document.documentElement).getPropertyValue('--preloader-animation').trim();
       
@@ -228,12 +228,18 @@ function runMainScript() {
     }
   }
 
+  // Instantiate preloader immediately (no DOMContentLoaded wait)
+  if (document.querySelector('div[id*="preloadercanvas"]')) {
+    new SimplePreloader();
+    console.log("Preloader instantiated immediately");
+  } else {
+    console.log("No preloader element found");
+  }
+
   // Function to run the main effects code
   function runMainEffects() {
     console.log("Main script running..."); // Debug log
 
-    let preloaderInstance = new SimplePreloader();
-    
     if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined' && typeof SplitText !== 'undefined') {
       gsap.registerPlugin(ScrollTrigger, SplitText);
       ScrollTrigger.config({
@@ -241,6 +247,7 @@ function runMainScript() {
         autoRefreshEvents: "visibilitychange,DOMContentLoaded,load" 
       });
       gsap.config({ autoSleep: 60, force3D: true });  
+      console.log("GSAP plugins registered");
     } else {
       console.error("GSAP, ScrollTrigger, or SplitText not loaded");
       return;
@@ -332,14 +339,16 @@ function runMainScript() {
       }
     `;
     document.head.appendChild(style);
+    console.log("CSS injected");
 
     // Draggable
     if (document.querySelector('.draggable') && typeof $.fn.draggable !== 'undefined') {
-      $(function () {
-        $(".draggable").draggable({
-          containment: ".sb:has(.draggable)"
-        });
+      $(".draggable").draggable({
+        containment: ".sb:has(.draggable)"
       });
+      console.log("Draggable initialized");
+    } else {
+      console.warn("Draggable elements or $.fn.draggable not found");
     }
 
     // Textfill
@@ -378,11 +387,18 @@ function runMainScript() {
         
         tl.progress(0);  
       });
+      console.log("Textfill animations set up");
+    } else {
+      console.log("No .textfill elements found");
     }
 
     // Sliding Galleries
     (function() {
-      if (!document.querySelector('.gallery1') || !document.querySelector('.gallery2')) return;
+      if (!document.querySelector('.gallery1') || !document.querySelector('.gallery2')) {
+        console.log("No gallery1 or gallery2 found");
+        return;
+      }
+      console.log("Sliding Galleries initializing...");
       
       let gallery1, gallery2, content1, content2;
       let currentOffset1 = 0;
@@ -400,6 +416,7 @@ function runMainScript() {
         content2 = gallery2.firstElementChild;
         if (!content1 || !content2) return;
         startSmoothAnimation();
+        console.log("Sliding Galleries started");
       }
 
       function getTargetOffsets() {
@@ -443,6 +460,7 @@ function runMainScript() {
 
     // Images Appearing on Hover
     if (document.querySelector('.hovertitle') && document.querySelector('.hoverphoto')) {
+      console.log("Hover images initializing...");
       const hoverTitles = document.querySelectorAll('.hovertitle');
       const hoverPhotos = document.querySelectorAll('.hoverphoto');
       let activePhotoIndex = -1;
@@ -530,10 +548,13 @@ function runMainScript() {
         clearTimeout(scrollTimeout);
         scrollTimeout = setTimeout(hideAllPhotos, 100);
       });
+    } else {
+      console.log("No .hovertitle or .hoverphoto found");
     }
 
     // Logo on Scroll
     if (document.querySelector('.animated-logo') && window.innerWidth > 768) {
+      console.log("Logo on Scroll initializing...");
       const root = document.documentElement;
       let triggerElement = document.querySelector('.sb:has(.animated-logo)');
       let targetElement = $(".animated-logo");
@@ -593,11 +614,17 @@ function runMainScript() {
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(createTimeline, 150);
       });
+    } else {
+      console.log("No .animated-logo or window too small");
     }
 
     // Horizontal Scroll
     (function() {
-      if (!document.querySelector('[id*="horizontalscroll"]')) return;
+      if (!document.querySelector('[id*="horizontalscroll"]')) {
+        console.log("No horizontalscroll elements found");
+        return;
+      }
+      console.log("Horizontal Scroll initializing...");
       let isInitialized = false;
 
       function initHorizontalScroll() {
@@ -646,6 +673,7 @@ function runMainScript() {
         document.addEventListener('scroll', horizontalScroll);
         horizontalScroll();
         isInitialized = true;
+        console.log("Horizontal Scroll set up");
       }
 
       if (document.readyState === 'loading') {
@@ -657,6 +685,7 @@ function runMainScript() {
 
     // Image grow on scroll
     if (document.querySelector('.grow-image')) {
+      console.log("Image grow on scroll initializing...");
       const containers = document.querySelectorAll(".grow-image");
       const root = document.documentElement;
       
@@ -725,10 +754,14 @@ function runMainScript() {
           }
         }
       });
+      console.log("Image grow animations set up");
+    } else {
+      console.log("No .grow-image elements found");
     }
 
     // Canvas Theme Switch on Scroll
     if (document.querySelector('.bgchange')) {
+      console.log("Canvas Theme Switch initializing...");
       const style = document.createElement('style');
       style.textContent = `
         :root {
@@ -960,7 +993,21 @@ function runMainScript() {
           ScrollTrigger.refresh();
         }, 250); 
       });
+
+      console.log("Canvas Theme Switch set up");
+    } else {
+      console.log("No .bgchange elements found");
     }
+
+    // CRITICAL: Refresh ScrollTrigger after all setups to handle dynamic loading/defer
+    if (typeof ScrollTrigger !== 'undefined') {
+      setTimeout(() => {
+        ScrollTrigger.refresh();
+        console.log("ScrollTrigger refreshed");
+      }, 100); // Small delay to ensure DOM is fully settled
+    }
+
+    console.log("All effects initialized");
   }
 
   // Check DOM readiness and run main effects
@@ -968,11 +1015,6 @@ function runMainScript() {
     document.addEventListener('DOMContentLoaded', runMainEffects);
   } else {
     runMainEffects();
-  }
-
-  // Instantiate preloader early (as in original)
-  if (typeof SimplePreloader !== 'undefined') {
-    new SimplePreloader();
   }
 }
 
