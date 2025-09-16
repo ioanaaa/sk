@@ -11,7 +11,7 @@ function loadScript(url) {
 
 // Load all scripts with proper dependency order
 async function loadAllScripts() {
-  console.log("BUNDLE.JS UPDATED VERSION LOADED - DEBUG MODE");
+  
   try {
     // Load jQuery and GSAP in parallel (independent)
     await Promise.all([
@@ -19,6 +19,7 @@ async function loadAllScripts() {
       loadScript("https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js")
     ]);
     console.log("jQuery and GSAP loaded");
+    console.log("BUNDLE.JS UPDATED VERSION LOADED - DEBUG MODE");
 
     // Load dependent scripts in parallel where possible
     await Promise.all([
