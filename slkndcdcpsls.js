@@ -1,3 +1,6 @@
+console.log("BUNDLE.JS UPDATED VERSION LOADED - DEBUG MODE");
+
+
 function loadScript(url) {
   return new Promise((resolve, reject) => {
     const script = document.createElement("script");
@@ -19,7 +22,7 @@ async function loadAllScripts() {
       loadScript("https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js")
     ]);
     console.log("jQuery and GSAP loaded");
-    console.log("BUNDLE.JS UPDATED VERSION LOADED - DEBUG MODE");
+    
 
     // Load dependent scripts in parallel where possible
     await Promise.all([
