@@ -9,30 +9,26 @@ function loadScript(url) {
   });
 }
 
-// Load all scripts with proper dependency order
 async function loadAllScripts() {
   try {
-    // Load jQuery and GSAP in parallel (independent)
+   
     await Promise.all([
-      loadScript("https://code.jquery.com/jquery-3.6.0.min.js"), // Required for jQuery UI
-      loadScript("https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js")
+       loadScript("https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js")
     ]);
     console.log("jQuery and GSAP loaded");
 
-    // Load dependent scripts in parallel where possible
-    await Promise.all([
+      await Promise.all([
       loadScript("https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"),
       loadScript("https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"),
       loadScript("https://code.jquery.com/ui/1.12.1/jquery-ui.js"),
     ]);
     console.log("ScrollTrigger, SplitText, and jQuery UI loaded");
 
-    // Load jQuery UI Touch Punch (depends on jQuery UI)
+  
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js");
     console.log("jQuery UI Touch Punch loaded");
 
-    // Run the main script after all dependencies are loaded
-    runMainScript();
+   runMainScript();
   } catch (error) {
     console.error("Error loading scripts:", error);
   }
@@ -41,205 +37,12 @@ async function loadAllScripts() {
 function runMainScript() {
   console.log("All libraries loaded, checking DOM readiness...");
 
-  // Preloader class definition (unchanged)
-  class SimplePreloader {
-    constructor() {
-      this.object = document.querySelector('.animated-preloader-object');
-      this.preloaderSection = document.querySelector('div[id*="preloadercanvas"]');
-      this.currentAnimation = null;
-      this.isPageLoaded = false;
-      this.startTime = Date.now();
-      
-      if (this.preloaderSection) {
-        this.init();
-      } 
-    }
+ 
 
-    init() {
-      const activatePreloader = getComputedStyle(document.documentElement).getPropertyValue('--activate-preloader').trim();
-      
-      if (activatePreloader !== 'true') {
-        this.preloaderSection.style.display = 'none';
-        return;
-      }
-      
-      this.preloaderSection.style.opacity = '1';
-      this.preloaderSection.classList.add('preloader-active');
-      
-      const animationType = getComputedStyle(document.documentElement).getPropertyValue('--preloader-animation').trim();
-      
-      const minDisplayRaw = getComputedStyle(document.documentElement).getPropertyValue('--min-display-time').trim();
-      let minDisplayTime = 3000;  // Default fallback (3s)
-      if (minDisplayRaw) {
-        const cleanMinDisplay = minDisplayRaw.replace(/[a-zA-Z%]+$/g, '');
-        const numericMinDisplay = parseFloat(cleanMinDisplay);
-        if (!isNaN(numericMinDisplay) && numericMinDisplay > 0) {
-          minDisplayTime = numericMinDisplay * 1000;  // Convert s to ms
-        }
-      }
-      
-      const animationDurationRaw = getComputedStyle(document.documentElement).getPropertyValue('--animation-duration').trim();
-      let animationDuration = 1.5;  // Default fallback (1.5s)
-      if (animationDurationRaw) {
-        const cleanAnimationDuration = animationDurationRaw.replace(/[a-zA-Z%]+$/g, '');
-        const numericAnimationDuration = parseFloat(cleanAnimationDuration);
-        if (!isNaN(numericAnimationDuration) && numericAnimationDuration > 0) {
-          animationDuration = numericAnimationDuration;  
-        }
-      }
-      
-      const fadeDurationRaw = getComputedStyle(document.documentElement).getPropertyValue('--fade-duration').trim();
-      let fadeDuration = 0.5;  // Default fallback (0.5s)
-      if (fadeDurationRaw) {
-        const cleanFadeDuration = fadeDurationRaw.replace(/[a-zA-Z%]+$/g, '');
-        const numericFadeDuration = parseFloat(cleanFadeDuration);
-        if (!isNaN(numericFadeDuration) && numericFadeDuration > 0) {
-          fadeDuration = numericFadeDuration;  
-        }
-      }
-      
-      this.startAnimation(animationType, animationDuration);
-      
-      // Wait for full load 
-      window.addEventListener('load', () => {
-        this.preloadImagesAndGSAP(() => {
-          this.isPageLoaded = true;
-          this.checkHidePreloader(minDisplayTime);
-        });
-      });
 
-      setTimeout(() => {
-        this.checkHidePreloader(minDisplayTime);
-      }, minDisplayTime);
-    }
-
-    preloadImagesAndGSAP(callback) {
-      if (typeof gsap === 'undefined') {
-        setTimeout(() => this.preloadImagesAndGSAP(callback), 500);
-        return;
-      }
-      const images = document.querySelectorAll('img');
-      let loaded = 0;
-      const total = images.length;
-      if (total === 0) {
-        callback();
-        return;
-      }
-      images.forEach(img => {
-        if (img.complete) {
-          loaded++;
-        } else {
-          img.onload = () => {
-            loaded++;
-            if (loaded === total) callback();
-          };
-          img.onerror = () => {
-            loaded++;
-            if (loaded === total) callback();
-          };
-        }
-      });
-      if (loaded === total) callback();
-    }
-
-    checkHidePreloader(minDisplayTime) {
-      const elapsedTime = Date.now() - this.startTime;
-      if (this.isPageLoaded && elapsedTime >= minDisplayTime) {
-        this.hidePreloader();
-      }
-    }
-
-    startAnimation(type, animationDuration) {
-      this.clearAnimations();
-      
-      if (this.object) this.object.style.opacity = '1';
-      
-      switch(type) {
-        case 'pulse':
-          this.setupPulseAnimation(animationDuration);
-          break;
-        case 'rotate':
-          this.setupRotateAnimation(animationDuration);
-          break;
-        case 'none':
-          if (this.object) this.object.style.opacity = '1';
-          break;
-        default:
-          if (this.object) this.object.style.opacity = '1';
-      }
-    }
-
-    setupPulseAnimation(animationDuration) {
-      if (!this.object || typeof gsap === 'undefined') return;
-      this.currentAnimation = gsap.to(this.object, {
-        scale: 1.05,
-        duration: animationDuration,  // dynamic duration
-        ease: "sine.inOut",
-        yoyo: true,
-        repeat: -1,
-        transformOrigin: "center center"
-      });
-    }
-
-    setupRotateAnimation(animationDuration) {
-      if (!this.object || typeof gsap === 'undefined') return;
-      this.currentAnimation = gsap.to(this.object, {
-        rotation: 360,
-        duration: animationDuration,  // dynamic duration
-        ease: "none",
-        repeat: -1,
-        transformOrigin: "center center"
-      });
-    }
-
-    clearAnimations() {
-      if (this.currentAnimation) {
-        this.currentAnimation.kill();
-        this.currentAnimation = null;
-      }
-    }
-
-    hidePreloader() {
-      if (!this.preloaderSection) return;
-      
-      const fadeDurationRaw = getComputedStyle(document.documentElement).getPropertyValue('--fade-duration').trim();
-      let fadeDuration = 0.5;  // default fallback (0.5s)
-      if (fadeDurationRaw) {
-        const cleanFadeDuration = fadeDurationRaw.replace(/[a-zA-Z%]+$/g, '');
-        const numericFadeDuration = parseFloat(cleanFadeDuration);
-        if (!isNaN(numericFadeDuration) && numericFadeDuration > 0) {
-          fadeDuration = numericFadeDuration;
-        }
-      }
-      
-      if (typeof gsap !== 'undefined') {
-        gsap.to(this.preloaderSection, {
-          opacity: 0,
-          duration: fadeDuration,  
-          ease: "power2.out",
-          onComplete: () => {
-            this.clearAnimations();
-            this.preloaderSection.style.display = 'none';
-          }
-        });
-      } else {
-        this.preloaderSection.style.display = 'none';
-      }
-    }
-  }
-
-  // Instantiate preloader immediately (no DOMContentLoaded wait)
-  if (document.querySelector('div[id*="preloadercanvas"]')) {
-    new SimplePreloader();
-    console.log("Preloader instantiated immediately");
-  } else {
-    console.log("No preloader element found");
-  }
-
-  // Function to run the main effects code
   function runMainEffects() {
     console.log("Main script running..."); // Debug log
-
+     
     if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined' && typeof SplitText !== 'undefined') {
       gsap.registerPlugin(ScrollTrigger, SplitText);
       ScrollTrigger.config({
@@ -247,7 +50,6 @@ function runMainScript() {
         autoRefreshEvents: "visibilitychange,DOMContentLoaded,load" 
       });
       gsap.config({ autoSleep: 60, force3D: true });  
-      console.log("GSAP plugins registered");
     } else {
       console.error("GSAP, ScrollTrigger, or SplitText not loaded");
       return;
@@ -326,29 +128,16 @@ function runMainScript() {
         }
       }
 
-      /* ---- Preloader Animation ------ */
-      .preloader-active {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        z-index: 9999 !important;
-        transition: opacity 0.5s ease-out;
-        display: block !important;
-      }
-    `;
+         `;
     document.head.appendChild(style);
-    console.log("CSS injected");
 
     // Draggable
     if (document.querySelector('.draggable') && typeof $.fn.draggable !== 'undefined') {
-      $(".draggable").draggable({
-        containment: ".sb:has(.draggable)"
+      $(function () {
+        $(".draggable").draggable({
+          containment: ".sb:has(.draggable)"
+        });
       });
-      console.log("Draggable initialized");
-    } else {
-      console.warn("Draggable elements or $.fn.draggable not found");
     }
 
     // Textfill
@@ -387,18 +176,11 @@ function runMainScript() {
         
         tl.progress(0);  
       });
-      console.log("Textfill animations set up");
-    } else {
-      console.log("No .textfill elements found");
     }
 
     // Sliding Galleries
     (function() {
-      if (!document.querySelector('.gallery1') || !document.querySelector('.gallery2')) {
-        console.log("No gallery1 or gallery2 found");
-        return;
-      }
-      console.log("Sliding Galleries initializing...");
+      if (!document.querySelector('.gallery1') || !document.querySelector('.gallery2')) return;
       
       let gallery1, gallery2, content1, content2;
       let currentOffset1 = 0;
@@ -416,7 +198,6 @@ function runMainScript() {
         content2 = gallery2.firstElementChild;
         if (!content1 || !content2) return;
         startSmoothAnimation();
-        console.log("Sliding Galleries started");
       }
 
       function getTargetOffsets() {
@@ -460,7 +241,6 @@ function runMainScript() {
 
     // Images Appearing on Hover
     if (document.querySelector('.hovertitle') && document.querySelector('.hoverphoto')) {
-      console.log("Hover images initializing...");
       const hoverTitles = document.querySelectorAll('.hovertitle');
       const hoverPhotos = document.querySelectorAll('.hoverphoto');
       let activePhotoIndex = -1;
@@ -548,13 +328,10 @@ function runMainScript() {
         clearTimeout(scrollTimeout);
         scrollTimeout = setTimeout(hideAllPhotos, 100);
       });
-    } else {
-      console.log("No .hovertitle or .hoverphoto found");
     }
 
     // Logo on Scroll
     if (document.querySelector('.animated-logo') && window.innerWidth > 768) {
-      console.log("Logo on Scroll initializing...");
       const root = document.documentElement;
       let triggerElement = document.querySelector('.sb:has(.animated-logo)');
       let targetElement = $(".animated-logo");
@@ -614,17 +391,11 @@ function runMainScript() {
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(createTimeline, 150);
       });
-    } else {
-      console.log("No .animated-logo or window too small");
     }
 
     // Horizontal Scroll
     (function() {
-      if (!document.querySelector('[id*="horizontalscroll"]')) {
-        console.log("No horizontalscroll elements found");
-        return;
-      }
-      console.log("Horizontal Scroll initializing...");
+      if (!document.querySelector('[id*="horizontalscroll"]')) return;
       let isInitialized = false;
 
       function initHorizontalScroll() {
@@ -673,7 +444,6 @@ function runMainScript() {
         document.addEventListener('scroll', horizontalScroll);
         horizontalScroll();
         isInitialized = true;
-        console.log("Horizontal Scroll set up");
       }
 
       if (document.readyState === 'loading') {
@@ -685,7 +455,6 @@ function runMainScript() {
 
     // Image grow on scroll
     if (document.querySelector('.grow-image')) {
-      console.log("Image grow on scroll initializing...");
       const containers = document.querySelectorAll(".grow-image");
       const root = document.documentElement;
       
@@ -754,14 +523,10 @@ function runMainScript() {
           }
         }
       });
-      console.log("Image grow animations set up");
-    } else {
-      console.log("No .grow-image elements found");
     }
 
     // Canvas Theme Switch on Scroll
     if (document.querySelector('.bgchange')) {
-      console.log("Canvas Theme Switch initializing...");
       const style = document.createElement('style');
       style.textContent = `
         :root {
@@ -993,21 +758,7 @@ function runMainScript() {
           ScrollTrigger.refresh();
         }, 250); 
       });
-
-      console.log("Canvas Theme Switch set up");
-    } else {
-      console.log("No .bgchange elements found");
     }
-
-    // CRITICAL: Refresh ScrollTrigger after all setups to handle dynamic loading/defer
-    if (typeof ScrollTrigger !== 'undefined') {
-      setTimeout(() => {
-        ScrollTrigger.refresh();
-        console.log("ScrollTrigger refreshed");
-      }, 100); // Small delay to ensure DOM is fully settled
-    }
-
-    console.log("All effects initialized");
   }
 
   // Check DOM readiness and run main effects
@@ -1015,6 +766,11 @@ function runMainScript() {
     document.addEventListener('DOMContentLoaded', runMainEffects);
   } else {
     runMainEffects();
+  }
+
+  // Instantiate preloader early (as in original)
+  if (typeof SimplePreloader !== 'undefined') {
+    new SimplePreloader();
   }
 }
 
