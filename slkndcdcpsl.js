@@ -15,18 +15,18 @@ async function loadAllScripts() {
     await Promise.all([
        loadScript("https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js")
     ]);
-    console.log("jQuery and GSAP loaded");
+    
 
       await Promise.all([
       loadScript("https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"),
       loadScript("https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"),
       loadScript("https://code.jquery.com/ui/1.12.1/jquery-ui.js"),
     ]);
-    console.log("ScrollTrigger, SplitText, and jQuery UI loaded");
+    
 
   
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js");
-    console.log("jQuery UI Touch Punch loaded");
+    
 
    runMainScript();
   } catch (error) {
@@ -35,13 +35,10 @@ async function loadAllScripts() {
 }
 
 function runMainScript() {
-  console.log("All libraries loaded, checking DOM readiness...");
-
- 
+   
 
 
-  function runMainEffects() {
-    console.log("Main script running..."); // Debug log
+  function runMainEffects() {   
      
     if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined' && typeof SplitText !== 'undefined') {
       gsap.registerPlugin(ScrollTrigger, SplitText);
@@ -143,18 +140,16 @@ function runMainScript() {
     // Textfill
     const textContainers = document.querySelectorAll(".textfill");
     if (textContainers.length) {
-      console.log('Textfill: Found', textContainers.length, '.textfill elements');
+      
       textContainers.forEach((textContainer) => {
         const textElement = textContainer.querySelector("p, h1, h2, h3, h4, h5, h6, span");
-        if (!textElement) {
-          console.warn('Textfill: No text element found in', textContainer);
+        if (!textElement) {         
           return;
         }
         
         let split = new SplitText(textElement, { type: "chars" });
         if (!split.chars || split.chars.length === 0) {
-          console.warn('Textfill: SplitText failed for', textElement);
-          return;
+           return;
         }
         
         gsap.set(split.chars, { opacity: 0.2 });    
