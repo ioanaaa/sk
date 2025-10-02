@@ -137,7 +137,7 @@ function runMainScript() {
       });
     }
 
-    // Textfill
+    // Textfill    
     const textContainers = document.querySelectorAll(".textfill");
     if (textContainers.length) {
       
@@ -147,7 +147,7 @@ function runMainScript() {
           return;
         }
         
-        let split = new SplitText(textElement, { type: "chars" });
+        let split = new SplitText(textElement, { type: "words, chars" });
         if (!split.chars || split.chars.length === 0) {
            return;
         }
